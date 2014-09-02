@@ -1,22 +1,24 @@
 package agent
 
 import (
+	"fmt"
 	"os"
 
-	gracefully "github.com/visionmedia/go-gracefully"
 	"github.com/weekface/togo/ui"
 )
 
 type Agent struct {
-	Ui ui.DefaultUi
+	Ui   ui.DefaultUi
+	Args map[string]interface{}
 }
 
-func New(args []string) *Agent {
+func New(args map[string]interface{}) *Agent {
 	ui := ui.DefaultUi{Reader: os.Stdin, Writer: os.Stdout}
-	return &Agent{Ui: ui}
+	return &Agent{Ui: ui, Args: args}
 }
 
 func (agent *Agent) Run() {
-	agent.Help()
-	gracefully.Shutdown()
+	if agent.Args["list"].(bool) {
+		fmt.Println("listing...")
+	}
 }
