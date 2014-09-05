@@ -9,18 +9,6 @@ import (
 	"github.com/weekface/togo/ui"
 )
 
-var help = `
-Usage:
-	
-  togo --server
-
-Options:
-	
-  -s --server  Start server also.
-	
-Press Ctr+Q to quit.
-`
-
 func setString(str string, fg, bg termbox.Attribute, x int, y int) int {
 	rw := 0
 	for len(str) > 0 {
