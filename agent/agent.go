@@ -37,9 +37,11 @@ func New() *Agent {
 
 // given a string, this func print them to the terminal,
 // return the total width of the string.
-func (agent *Agent) printLine(str string, x int, y int) int {
-	// rw is the total width of the string
-	rw := 0
+func (agent *Agent) PringLine(str string, x int, y int) int {
+	// strWidth is the total width of the string
+	strWidth := 0
+
+	width, _ := termbox.Size()
 
 	for len(str) > 0 {
 		c, w := utf8.DecodeRuneInString(str)
@@ -52,13 +54,27 @@ func (agent *Agent) printLine(str string, x int, y int) int {
 		termbox.SetCell(x, y, c, agent.Fg, agent.Bg)
 
 		x += runewidth.RuneWidth(c)
-		rw += runewidth.RuneWidth(c)
+		strWidth += runewidth.RuneWidth(c)
 	}
-	return rw
+
+	blankPosition := strWidth
+
+	for blankPosition < width {
+		termbox.SetCell(blankPosition, y, ' ', agent.Fg, agent.Bg)
+		blankPosition++
+	}
+
+	return strWidth
+}
+
+func (agent *Agent) DeletePromp() {
+	_, size := utf8.DecodeLastRuneInString(agent.Chars)
+	agent.Chars = agent.Chars[:len(agent.Chars)-size]
+	agent.DrawPromp("")
 }
 
 // draw the promp line.
-func (agent *Agent) drawPromp(str string) {
+func (agent *Agent) DrawPromp(str string) {
 	agent.Chars = agent.Chars + string(str)
 
 	prompStr := "TOGO> " + agent.Chars
@@ -66,7 +82,7 @@ func (agent *Agent) drawPromp(str string) {
 	x := 0
 	y := 0
 
-	width := agent.printLine(prompStr, x, y)
+	width := agent.PringLine(prompStr, x, y)
 	termbox.SetCursor(width, 0)
 	termbox.Flush()
 }
@@ -80,10 +96,10 @@ func (agent *Agent) Run() {
 
 	defer termbox.Close()
 	termbox.Clear(agent.Fg, agent.Bg)
-	agent.drawPromp("")
+	agent.DrawPromp("")
 
-	agent.printLine(agent.AlertString, 0, 2)
-	agent.printLine("Latest Version: "+agent.Version, 0, 3)
+	agent.PringLine(agent.AlertString, 0, 2)
+	agent.PringLine("Latest Version: "+agent.Version, 0, 3)
 	termbox.Flush()
 
 loop:
@@ -100,12 +116,16 @@ loop:
 			// puts " " to the screen, when we press space.
 			case termbox.KeySpace:
 				str := " "
-				agent.drawPromp(str)
+				agent.DrawPromp(str)
+
+			// support back space key
+			case termbox.KeyBackspace, termbox.KeyBackspace2:
+				agent.DeletePromp()
 
 			// convert rune to string, then draw the promp.
 			default:
 				str := string(ev.Ch)
-				agent.drawPromp(str)
+				agent.DrawPromp(str)
 			}
 		}
 	}
