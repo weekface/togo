@@ -1,11 +1,21 @@
 package agent
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 )
+
+var help = `
+Usage:
+
+  list        List all the todo s.
+  add <task>  Add a new todo task.
+  help|h      Show help info.
+
+Press Ctr+C to quit.`
 
 // type Agent present the togo terminate's all attributes.
 type Agent struct {
@@ -49,6 +59,7 @@ func (agent *Agent) PringLine(str string, x int, y int) int {
 			c = '?'
 			w = 1
 		}
+
 		str = str[w:]
 
 		termbox.SetCell(x, y, c, agent.Fg, agent.Bg)
@@ -59,6 +70,7 @@ func (agent *Agent) PringLine(str string, x int, y int) int {
 
 	blankPosition := strWidth
 
+	// print blank into the rest of line.
 	for blankPosition < width {
 		termbox.SetCell(blankPosition, y, ' ', agent.Fg, agent.Bg)
 		blankPosition++
@@ -67,10 +79,54 @@ func (agent *Agent) PringLine(str string, x int, y int) int {
 	return strWidth
 }
 
+// a function to print N lines to the screen.
+func (agent *Agent) PringLines(str string, x, y int) {
+	lines := strings.Split(str, "\n")
+
+	for _, line := range lines {
+		agent.PringLine(line, x, y)
+		x = 0
+		y++
+	}
+}
+
+// backspace key support
 func (agent *Agent) DeletePromp() {
 	_, size := utf8.DecodeLastRuneInString(agent.Chars)
 	agent.Chars = agent.Chars[:len(agent.Chars)-size]
 	agent.DrawPromp("")
+}
+
+// display help info
+func (agent *Agent) ShowHelp() {
+	termbox.Clear(agent.Fg, agent.Bg)
+
+	agent.Chars = ""
+	agent.DrawPromp("")
+	agent.PringLines(help, 0, 1)
+	termbox.Flush()
+}
+
+// parse command. Now, just support help command to show the help info.
+func (agent *Agent) ParseCmd() {
+	command := strings.Split(agent.Chars, " ")[0]
+
+	switch command {
+
+	// help command.
+	case "help", "h":
+		agent.ShowHelp()
+
+	// default, print what you press.
+	default:
+		termbox.Clear(agent.Fg, agent.Bg)
+		chars := agent.Chars
+		agent.Chars = ""
+		agent.DrawPromp("")
+
+		agent.PringLine(chars, 0, 2)
+		termbox.Flush()
+	}
 }
 
 // draw the promp line.
@@ -121,6 +177,10 @@ loop:
 			// support back space key
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
 				agent.DeletePromp()
+
+			// when we press Enter, parse the command.
+			case termbox.KeyEnter:
+				agent.ParseCmd()
 
 			// convert rune to string, then draw the promp.
 			default:
