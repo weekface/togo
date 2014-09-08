@@ -41,7 +41,7 @@ func New() *Agent {
 		AlertString: "Press what you want. Press Ctr+C to quit.",
 		Fg:          termbox.ColorWhite,
 		Bg:          termbox.ColorBlack,
-		Version:     "0.0.2",
+		Version:     "0.0.3",
 	}
 }
 
