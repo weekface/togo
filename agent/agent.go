@@ -52,7 +52,7 @@ func New() *Agent {
 		AlertString: "Press what you want. Press Ctr+C to quit.",
 		Fg:          termbox.ColorWhite,
 		Bg:          termbox.ColorBlack,
-		Version:     "0.0.3",
+		Version:     "0.1.0",
 		NewPath:     filepath.Join(dir, ".togo/new"),
 		OldPath:     filepath.Join(dir, ".togo/old"),
 	}

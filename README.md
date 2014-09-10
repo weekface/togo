@@ -5,8 +5,10 @@ Togo
 
  Now, it is under development, so you can not use it now.
 
- Just test:
+### Installation
+
+Via go-get:
 
 ```bash 
-go run cmd/togo/togo.go
+$ go get github.com/weekface/togo
 ```
