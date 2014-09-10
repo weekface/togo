@@ -1,11 +1,15 @@
 package agent
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/mattn/go-runewidth"
+	"github.com/mitchellh/go-homedir"
 	"github.com/nsf/termbox-go"
+	"github.com/weekface/togo/util"
 )
 
 var help = `
@@ -33,15 +37,24 @@ type Agent struct {
 
 	// version
 	Version string
+
+	// new files path
+	NewPath string
+
+	// old files path
+	OldPath string
 }
 
 // return a default Agent.
 func New() *Agent {
+	dir, _ := homedir.Dir()
 	return &Agent{
 		AlertString: "Press what you want. Press Ctr+C to quit.",
 		Fg:          termbox.ColorWhite,
 		Bg:          termbox.ColorBlack,
 		Version:     "0.0.3",
+		NewPath:     filepath.Join(dir, ".togo/new"),
+		OldPath:     filepath.Join(dir, ".togo/old"),
 	}
 }
 
@@ -90,6 +103,15 @@ func (agent *Agent) PringLines(str string, x, y int) {
 	}
 }
 
+// a function to print N slices to the screen.
+func (agent *Agent) PringSlice(lines []string, x, y int) {
+	for _, line := range lines {
+		agent.PringLine(line, x, y)
+		x = 0
+		y++
+	}
+}
+
 // backspace key support
 func (agent *Agent) DeletePromp() {
 	_, size := utf8.DecodeLastRuneInString(agent.Chars)
@@ -107,6 +129,42 @@ func (agent *Agent) ShowHelp() {
 	termbox.Flush()
 }
 
+// list all new todos.
+func (agent *Agent) ListNew() {
+	files, err := filepath.Glob(filepath.Join(agent.NewPath, "*"))
+	list := make([]string, 0)
+
+	if err != nil {
+		panic("Read todos fail!")
+	}
+
+	for _, file := range files {
+		data, err := ioutil.ReadFile(file)
+		if err != nil {
+			panic(err)
+		}
+
+		list = append(list, string(data))
+	}
+
+	termbox.Clear(agent.Fg, agent.Bg)
+	agent.PringSlice(list, 0, 2)
+	agent.Chars = ""
+	agent.DrawPromp("")
+	termbox.Flush()
+}
+
+// add a todo.
+func (agent *Agent) Add() {
+	slice := strings.SplitN(agent.Chars, " ", 2)
+
+	if len(slice) == 2 {
+		filename := util.Hash(slice[1])
+		ioutil.WriteFile(filepath.Join(agent.NewPath, filename), []byte(slice[1]), 0644)
+		agent.ListNew()
+	}
+}
+
 // parse command. Now, just support help command to show the help info.
 func (agent *Agent) ParseCmd() {
 	command := strings.Split(agent.Chars, " ")[0]
@@ -116,6 +174,10 @@ func (agent *Agent) ParseCmd() {
 	// help command.
 	case "help", "h":
 		agent.ShowHelp()
+
+	// add command.
+	case "add", "Add":
+		agent.Add()
 
 	// default, print what you press.
 	default:
@@ -154,8 +216,9 @@ func (agent *Agent) Run() {
 	termbox.Clear(agent.Fg, agent.Bg)
 	agent.DrawPromp("")
 
-	agent.PringLine(agent.AlertString, 0, 2)
-	agent.PringLine("Latest Version: "+agent.Version, 0, 3)
+	agent.ListNew()
+	// agent.PringLine(agent.AlertString, 0, 2)
+	// agent.PringLine("Latest Version: "+agent.Version, 0, 3)
 	termbox.Flush()
 
 loop:
