@@ -3,6 +3,10 @@ package util
 import (
 	"crypto/sha1"
 	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 // sha1 hash func.
@@ -13,4 +17,12 @@ func Hash(content string) (hash string) {
 
 	hash = fmt.Sprintf("%x", sum)
 	return
+}
+
+// initialize the togo data dir.
+func InitializeTogoDir() {
+	dir, _ := homedir.Dir()
+	togoDir := filepath.Join(dir, ".togo")
+	os.MkdirAll(filepath.Join(togoDir, "new"), 0755)
+	os.MkdirAll(filepath.Join(togoDir, "old"), 0755)
 }

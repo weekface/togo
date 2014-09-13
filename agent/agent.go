@@ -6,9 +6,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattn/go-runewidth"
 	"github.com/mitchellh/go-homedir"
 	"github.com/nsf/termbox-go"
+	"github.com/weekface/togo/ui"
 	"github.com/weekface/togo/util"
 )
 
@@ -23,17 +23,10 @@ Press Ctr+C to quit.`
 
 // type Agent present the togo terminate's all attributes.
 type Agent struct {
+	Ui *ui.DefaultUi
+
 	// Now, it contain togo's prompt strings.
 	Chars string
-
-	// alert string, it is "Press Ctr+Q to quit.".
-	AlertString string
-
-	// foreground color.
-	Fg termbox.Attribute
-
-	// background color.
-	Bg termbox.Attribute
 
 	// version
 	Version string
@@ -49,66 +42,14 @@ type Agent struct {
 func New() *Agent {
 	dir, _ := homedir.Dir()
 	return &Agent{
-		AlertString: "Press what you want. Press Ctr+C to quit.",
-		Fg:          termbox.ColorWhite,
-		Bg:          termbox.ColorBlack,
-		Version:     "0.1.0",
-		NewPath:     filepath.Join(dir, ".togo/new"),
-		OldPath:     filepath.Join(dir, ".togo/old"),
-	}
-}
-
-// given a string, this func print them to the terminal,
-// return the total width of the string.
-func (agent *Agent) PringLine(str string, x int, y int) int {
-	// strWidth is the total width of the string
-	strWidth := 0
-
-	width, _ := termbox.Size()
-
-	for len(str) > 0 {
-		c, w := utf8.DecodeRuneInString(str)
-		if c == utf8.RuneError {
-			c = '?'
-			w = 1
-		}
-
-		str = str[w:]
-
-		termbox.SetCell(x, y, c, agent.Fg, agent.Bg)
-
-		x += runewidth.RuneWidth(c)
-		strWidth += runewidth.RuneWidth(c)
-	}
-
-	blankPosition := strWidth
-
-	// print blank into the rest of line.
-	for blankPosition < width {
-		termbox.SetCell(blankPosition, y, ' ', agent.Fg, agent.Bg)
-		blankPosition++
-	}
-
-	return strWidth
-}
-
-// a function to print N lines to the screen.
-func (agent *Agent) PringLines(str string, x, y int) {
-	lines := strings.Split(str, "\n")
-
-	for _, line := range lines {
-		agent.PringLine(line, x, y)
-		x = 0
-		y++
-	}
-}
-
-// a function to print N slices to the screen.
-func (agent *Agent) PringSlice(lines []string, x, y int) {
-	for _, line := range lines {
-		agent.PringLine(line, x, y)
-		x = 0
-		y++
+		Ui: &ui.DefaultUi{
+			Fg:          termbox.ColorWhite,
+			Bg:          termbox.ColorBlack,
+			AlertString: "Press what you want. Press Ctr+C to quit.",
+		},
+		Version: "0.1.0",
+		NewPath: filepath.Join(dir, ".togo/new"),
+		OldPath: filepath.Join(dir, ".togo/old"),
 	}
 }
 
@@ -119,14 +60,35 @@ func (agent *Agent) DeletePromp() {
 	agent.DrawPromp("")
 }
 
+// sugar
+func (agent *Agent) Clear() {
+	agent.Ui.Clear()
+}
+
+// sugar
+func (agent *Agent) Flush() {
+	agent.Ui.Flush()
+}
+
 // display help info
 func (agent *Agent) ShowHelp() {
-	termbox.Clear(agent.Fg, agent.Bg)
+	agent.Clear()
 
 	agent.Chars = ""
 	agent.DrawPromp("")
-	agent.PringLines(help, 0, 1)
-	termbox.Flush()
+
+	lines := strings.Split(help, "\n")
+
+	x := 1
+	y := 1
+
+	for _, line := range lines {
+		agent.Ui.PrintLine(line, x, y)
+		x = 0
+		y++
+	}
+
+	agent.Flush()
 }
 
 // list all new todos.
@@ -147,11 +109,11 @@ func (agent *Agent) ListNew() {
 		list = append(list, string(data))
 	}
 
-	termbox.Clear(agent.Fg, agent.Bg)
-	agent.PringSlice(list, 0, 2)
+	agent.Clear()
+	agent.Ui.PrintLines(list, 0, 2)
 	agent.Chars = ""
 	agent.DrawPromp("")
-	termbox.Flush()
+	agent.Flush()
 }
 
 // add a todo.
@@ -181,13 +143,7 @@ func (agent *Agent) ParseCmd() {
 
 	// default, print what you press.
 	default:
-		termbox.Clear(agent.Fg, agent.Bg)
-		chars := agent.Chars
-		agent.Chars = ""
-		agent.DrawPromp("")
-
-		agent.PringLine(chars, 0, 2)
-		termbox.Flush()
+		agent.ShowHelp()
 	}
 }
 
@@ -200,9 +156,9 @@ func (agent *Agent) DrawPromp(str string) {
 	x := 0
 	y := 0
 
-	width := agent.PringLine(prompStr, x, y)
-	termbox.SetCursor(width, 0)
-	termbox.Flush()
+	width := agent.Ui.PrintLine(prompStr, x, y)
+	agent.Ui.Cursor(width, 0)
+	agent.Flush()
 }
 
 // the public api of the Agent package.
@@ -213,13 +169,11 @@ func (agent *Agent) Run() {
 	}
 
 	defer termbox.Close()
-	termbox.Clear(agent.Fg, agent.Bg)
+	agent.Clear()
 	agent.DrawPromp("")
 
 	agent.ListNew()
-	// agent.PringLine(agent.AlertString, 0, 2)
-	// agent.PringLine("Latest Version: "+agent.Version, 0, 3)
-	termbox.Flush()
+	agent.Flush()
 
 loop:
 
