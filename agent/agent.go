@@ -2,6 +2,7 @@ package agent
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"unicode/utf8"
@@ -18,6 +19,7 @@ Usage:
   list        List all the todo s.
   add <task>  Add a new todo task.
   help|h      Show help info.
+	quit|exit|q Quit TOGO.
 
 Press Ctr+C to quit.`
 
@@ -127,6 +129,12 @@ func (agent *Agent) Add() {
 	}
 }
 
+// quit.
+func (agent *Agent) Quit() {
+	termbox.Close()
+	os.Exit(0)
+}
+
 // parse command. Now, just support help command to show the help info.
 func (agent *Agent) ParseCmd() {
 	command := strings.Split(agent.Chars, " ")[0]
@@ -136,6 +144,14 @@ func (agent *Agent) ParseCmd() {
 	// help command.
 	case "help", "h":
 		agent.ShowHelp()
+
+	// quit command.
+	case "quit", "Quit", "Exit", "exit", "q":
+		agent.Quit()
+
+	// list command.
+	case "list":
+		agent.ListNew()
 
 	// add command.
 	case "add", "Add":
