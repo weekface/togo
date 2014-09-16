@@ -112,7 +112,7 @@ func (agent *Agent) ListNew() {
 	}
 
 	agent.Clear()
-	agent.Ui.PrintLines(list, 0, 2)
+	agent.Ui.PrintLines(util.Reverse(list), 0, 2)
 	agent.Chars = ""
 	agent.DrawPromp("")
 	agent.Flush()
@@ -123,7 +123,7 @@ func (agent *Agent) Add() {
 	slice := strings.SplitN(agent.Chars, " ", 2)
 
 	if len(slice) == 2 {
-		filename := util.Hash(slice[1])
+		filename := util.Hash()
 		ioutil.WriteFile(filepath.Join(agent.NewPath, filename), []byte(slice[1]), 0644)
 		agent.ListNew()
 	}

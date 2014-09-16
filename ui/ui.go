@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"strconv"
 	"unicode/utf8"
 
 	"github.com/mattn/go-runewidth"
@@ -43,8 +44,8 @@ func (ui *DefaultUi) Cursor(x int, y int) {
 
 // a function to print N slices to the screen.
 func (ui *DefaultUi) PrintLines(lines []string, x, y int) {
-	for _, line := range lines {
-		ui.PrintLine(line, x, y)
+	for idx, line := range lines {
+		ui.PrintLine(strconv.Itoa(idx+1)+". "+line, x, y)
 		x = 0
 		y++
 	}
