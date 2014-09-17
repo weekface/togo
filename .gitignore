@@ -21,3 +21,6 @@ _testmain.go
 
 *.exe
 *.test
+.GITHUB_RELEASE_ID
+pkg/
+.envrc
