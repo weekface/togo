@@ -3,7 +3,7 @@
 Togo
 ====
 
- Minimalist TODO tool written in Go with Console and Web UI.
+ Minimalist todo tool written in Go.
 
  Now, it is under development, so you can not use all the feature.
 
