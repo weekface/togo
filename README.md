@@ -5,8 +5,6 @@ Togo
 
  Minimalist todo tool written in Go.
 
- Now, it is under development, so you can not use all the feature.
-
 ### Installation
 
 Gopher can use go-get:
