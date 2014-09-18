@@ -27,6 +27,31 @@ type DefaultUi struct {
 	AlertString string
 }
 
+// type Todo present a togo task.
+type Todo struct {
+	// file name.
+	Filename string
+
+	// content
+	Content string
+
+	// line number
+	LineNumber int
+
+	// foreground color.
+	Fg termbox.Attribute
+
+	// background color.
+	Bg termbox.Attribute
+}
+
+func NewTodo(content, filename string) Todo {
+	return Todo{
+		Content:  content,
+		Filename: filename,
+	}
+}
+
 // sugar
 func (ui *DefaultUi) Clear() {
 	termbox.Clear(ui.Fg, ui.Bg)
@@ -43,9 +68,9 @@ func (ui *DefaultUi) Cursor(x int, y int) {
 }
 
 // a function to print N slices to the screen.
-func (ui *DefaultUi) PrintLines(lines []string, x, y int) {
+func (ui *DefaultUi) PrintLines(lines []Todo, x, y int) {
 	for idx, line := range lines {
-		ui.PrintLine(strconv.Itoa(idx+1)+". "+line, x, y)
+		ui.PrintLine(strconv.Itoa(idx+1)+". "+line.Content, x, y)
 		x = 0
 		y++
 	}

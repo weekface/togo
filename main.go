@@ -10,7 +10,7 @@ func main() {
 	util.InitializeTogoDir()
 
 	// initialize a new agent object.
-	ag := agent.New()
+	ag := agent.NewAgent()
 
 	// run it now.
 	ag.Run()

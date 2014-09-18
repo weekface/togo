@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -16,10 +18,11 @@ import (
 var help = `
 Usage:
 
-  list        List all the todo s.
-  add <task>  Add a new todo task.
-  help|h      Show help info.
-	quit|exit|q Quit TOGO.
+  list|l        List all the todo s.
+  add <task>    Add a new todo task.
+  finish <id>   Finish a todo task.
+  help|h        Show help info.
+  quit|exit|q   Quit TOGO.
 
 Press Ctr+C to quit.`
 
@@ -38,10 +41,13 @@ type Agent struct {
 
 	// old files path
 	OldPath string
+
+	// all new todos.
+	lists []ui.Todo
 }
 
 // return a default Agent.
-func New() *Agent {
+func NewAgent() *Agent {
 	dir, _ := homedir.Dir()
 	return &Agent{
 		Ui: &ui.DefaultUi{
@@ -93,10 +99,14 @@ func (agent *Agent) ShowHelp() {
 	agent.Flush()
 }
 
-// list all new todos.
-func (agent *Agent) ListNew() {
+// find all undo todos
+func (agent *Agent) FindNewTodos() {
 	files, err := filepath.Glob(filepath.Join(agent.NewPath, "*"))
-	list := make([]string, 0)
+
+	// youxi: http://golang.org/src/pkg/sort/sort.go?s=6285:6310#L248
+	sort.Sort(sort.Reverse(sort.StringSlice(files)))
+
+	list := make([]ui.Todo, 0)
 
 	if err != nil {
 		panic("Read todos fail!")
@@ -108,14 +118,25 @@ func (agent *Agent) ListNew() {
 			panic(err)
 		}
 
-		list = append(list, string(data))
+		list = append(list, ui.NewTodo(string(data), file))
 	}
 
+	agent.lists = list
+}
+
+// display them.
+func (agent *Agent) DisplayAll() {
 	agent.Clear()
-	agent.Ui.PrintLines(util.Reverse(list), 0, 2)
+	agent.Ui.PrintLines(agent.lists, 0, 2)
 	agent.Chars = ""
 	agent.DrawPromp("")
 	agent.Flush()
+}
+
+// ok, this is owaful.
+func (agent *Agent) FindAndDisplayAll() {
+	agent.FindNewTodos()
+	agent.DisplayAll()
 }
 
 // add a todo.
@@ -125,7 +146,29 @@ func (agent *Agent) Add() {
 	if len(slice) == 2 {
 		filename := util.Hash()
 		ioutil.WriteFile(filepath.Join(agent.NewPath, filename), []byte(slice[1]), 0644)
-		agent.ListNew()
+		agent.FindAndDisplayAll()
+	}
+}
+
+// finish a todo.
+func (agent *Agent) finish() {
+	slice := strings.SplitN(agent.Chars, " ", 2)
+
+	if len(slice) != 2 {
+		return
+	}
+
+	index, err := strconv.Atoi(slice[1])
+
+	if err != nil {
+		return
+	}
+
+	todo := agent.lists[index-1]
+	err = os.Remove(todo.Filename)
+
+	if err == nil {
+		agent.FindAndDisplayAll()
 	}
 }
 
@@ -150,12 +193,16 @@ func (agent *Agent) ParseCmd() {
 		agent.Quit()
 
 	// list command.
-	case "list":
-		agent.ListNew()
+	case "list", "l":
+		agent.FindAndDisplayAll()
 
 	// add command.
 	case "add", "Add":
 		agent.Add()
+
+	// finish command.
+	case "finish":
+		agent.finish()
 
 	// default, print what you press.
 	default:
@@ -188,7 +235,7 @@ func (agent *Agent) Run() {
 	agent.Clear()
 	agent.DrawPromp("")
 
-	agent.ListNew()
+	agent.FindAndDisplayAll()
 	agent.Flush()
 
 loop:
