@@ -55,7 +55,7 @@ func NewAgent() *Agent {
 			Bg:          termbox.ColorDefault,
 			AlertString: "Press what you want. Press Ctr+C to quit.",
 		},
-		Version: "0.7.0",
+		Version: "1.0.0",
 		NewPath: filepath.Join(dir, ".togo/new"),
 		OldPath: filepath.Join(dir, ".togo/old"),
 	}
