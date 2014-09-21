@@ -70,7 +70,13 @@ func (ui *DefaultUi) Cursor(x int, y int) {
 // a function to print N slices to the screen.
 func (ui *DefaultUi) PrintLines(lines []Todo, x, y int) {
 	for idx, line := range lines {
-		ui.PrintLine(strconv.Itoa(idx+1)+". "+line.Content, x, y)
+		lineNumber := idx + 1
+
+		lineNumberStr := strconv.Itoa(lineNumber)
+		if lineNumber < 10 {
+			lineNumberStr = " " + strconv.Itoa(lineNumber)
+		}
+		ui.PrintLine(lineNumberStr+". "+line.Content, x, y)
 		x = 0
 		y++
 	}

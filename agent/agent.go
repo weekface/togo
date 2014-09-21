@@ -51,8 +51,8 @@ func NewAgent() *Agent {
 	dir, _ := homedir.Dir()
 	return &Agent{
 		Ui: &ui.DefaultUi{
-			Fg:          termbox.ColorWhite,
-			Bg:          termbox.ColorBlack,
+			Fg:          termbox.ColorDefault,
+			Bg:          termbox.ColorDefault,
 			AlertString: "Press what you want. Press Ctr+C to quit.",
 		},
 		Version: "0.7.0",
