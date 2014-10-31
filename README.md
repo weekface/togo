@@ -7,7 +7,7 @@ Togo
 
 ### Installation
 
-Gopher can use go-get:
+Gopher can use go-get to install:
 
 ```bash 
 $ go get github.com/weekface/togo
