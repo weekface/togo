@@ -1,0 +1,19 @@
+{
+	"ImportPath": "github.com/weekface/togo",
+	"GoVersion": "go1.3",
+	"Deps": [
+		{
+			"ImportPath": "github.com/mattn/go-runewidth",
+			"Comment": "travisish-23-g36f63b8",
+			"Rev": "36f63b8223e701c16f36010094fb6e84ffbaf8e0"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/go-homedir",
+			"Rev": "7d2d8c8a4e078ce3c58736ab521a40b37a504c52"
+		},
+		{
+			"ImportPath": "github.com/nsf/termbox-go",
+			"Rev": "bb19a81afd4bc2729799d1fedb19f7bd7ee284cf"
+		}
+	]
+}
